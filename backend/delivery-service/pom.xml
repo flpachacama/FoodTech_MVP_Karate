@@ -63,9 +63,30 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>com.intuit.karate</groupId>
+            <artifactId>karate-junit5</artifactId>
+            <version>1.4.1</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+            </testResource>
+            <testResource>
+                <directory>src/test/java</directory>
+                <includes>
+                    <include>**/*.feature</include>
+                    <include>**/*.js</include>
+                    <include>**/*.json</include>
+                </includes>
+            </testResource>
+        </testResources>
+
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
