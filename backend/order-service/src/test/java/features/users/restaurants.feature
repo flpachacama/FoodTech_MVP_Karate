@@ -1,7 +1,7 @@
 Feature: HU10 - Consulta de restaurantes y menu
 
 Background:
-  * call read('classpath:features/common/base.feature')
+  * url baseUrl
   * def schemas = callonce read('classpath:features/common/schemas.feature')
   * def auth = callonce read('classpath:features/auth/getToken.feature')
 

@@ -26,7 +26,7 @@ Scenario:
     id: '#number',
     restauranteId: '#number',
     repartidorId: '##number',
-    productos: '#[] ProductoPedido',
+    productos: '#[]',
     clienteId: '#number',
     clienteNombre: '#string',
     clienteCoordenadasX: '#number',

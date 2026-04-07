@@ -1,10 +1,22 @@
 Feature: HU7-HU9 - Gestion de pedidos
 
 Background:
-  * call read('classpath:features/common/base.feature')
+  * url baseUrl
   * def schemas = callonce read('classpath:features/common/schemas.feature')
   * def auth = callonce read('classpath:features/auth/getToken.feature')
-  * def client = randomClient()
+  * def defaultProduct = { id: 1, nombre: 'Hamburguesa Clasica', precio: 18000 }
+  * def createClient =
+  """
+  function() {
+    var id = java.lang.System.currentTimeMillis();
+    return {
+      id: id,
+      name: 'Cliente-Karate-' + id,
+      phone: '300000' + (id % 10000)
+    };
+  }
+  """
+  * def client = createClient()
   * def createOrderPayload =
   """
   function (overrides) {
@@ -36,6 +48,7 @@ Scenario: Crear pedido correctamente
   When method POST
   Then status 201
   And match response == schemas.OrderResponse
+  And match each response.productos == schemas.ProductoPedido
   And match response.estado == '#regex ^(ASIGNADO|PENDIENTE)$'
   And assert responseTime < 4000
 
@@ -46,7 +59,7 @@ Scenario: Error al confirmar pedido sin telefono
   When method POST
   Then status 400
   And match response == schemas.ErrorResponse
-  And match response.detail == '#regex (?i).*telefon.*'
+  And match response.detail == '#regex (?i).*tel[eé]f[oó]n.*'
 
 # TC-028
 Scenario: Cancelar pedido activo
