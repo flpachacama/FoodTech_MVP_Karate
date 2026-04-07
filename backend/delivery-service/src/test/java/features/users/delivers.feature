@@ -1,7 +1,7 @@
 Feature: HU1-HU2 - Consulta de repartidores
 
 Background:
-  * call read('classpath:features/common/base.feature')
+  * url baseUrl
   * def schemas = callonce read('classpath:features/common/schemas.feature')
 
 # TC-001 a TC-003 (cobertura de estados consultables)

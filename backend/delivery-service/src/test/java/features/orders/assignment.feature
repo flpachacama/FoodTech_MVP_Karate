@@ -1,7 +1,7 @@
 Feature: HU1-HU6 - Asignacion y actualizacion de estado en delivery
 
 Background:
-  * call read('classpath:features/common/base.feature')
+  * url baseUrl
   * def schemas = callonce read('classpath:features/common/schemas.feature')
   * def auth = callonce read('classpath:features/auth/getToken.feature')
 
@@ -30,7 +30,7 @@ Scenario: Clima invalido retorna error de validacion
   And request { pedidoId: 9003, restauranteX: 10, restauranteY: 20, clima: 'TORMENTA_EXTREMA' }
   When method POST
   Then status 400
-  And match response.error == '#regex (?i).*clima.*inval.*'
+  And match response.error == '#regex (?i).*clima.*inv[aá]l[ií]d.*'
 
 # TC-018
 Scenario: Actualizar estado del repartidor por evento ENTREGADO
@@ -47,4 +47,4 @@ Scenario: Rechazar evento no valido en update de estado
   And request { evento: 'EN_CAMINO' }
   When method PUT
   Then status 400
-  And match response.error == '#regex (?i).*evento.*inval.*'
+  And match response.error == '#regex (?i).*evento.*inv[aá]l[ií]d.*'
