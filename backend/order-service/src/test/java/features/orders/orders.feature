@@ -41,7 +41,6 @@ Background:
   }
   """
 
-# TC-024
 Scenario: Crear pedido correctamente
   Given path 'orders'
   And request createOrderPayload({})
@@ -52,7 +51,6 @@ Scenario: Crear pedido correctamente
   And match response.estado == '#regex ^(ASIGNADO|PENDIENTE)$'
   And assert responseTime < 4000
 
-# TC-026
 Scenario: Error al confirmar pedido sin telefono
   Given path 'orders'
   And request createOrderPayload({ clienteTelefono: '' })
@@ -61,7 +59,6 @@ Scenario: Error al confirmar pedido sin telefono
   And match response == schemas.ErrorResponse
   And match response.detail == '#regex (?i).*tel[eé]f[oó]n.*'
 
-# TC-028
 Scenario: Cancelar pedido activo
   Given path 'orders'
   And request createOrderPayload({})
@@ -75,7 +72,6 @@ Scenario: Cancelar pedido activo
   And match response == schemas.CancelOrDeliverResponse
   And match response.estado == 'CANCELADO'
 
-# TC-030
 Scenario: Cancelar pedido ya entregado debe fallar
   Given path 'orders'
   And request createOrderPayload({})
@@ -93,7 +89,6 @@ Scenario: Cancelar pedido ya entregado debe fallar
   Then status 400
   And match response == schemas.ErrorResponse
 
-# TC-027 (adaptado a contrato backend: restaurante invalido)
 Scenario: Error cuando se confirma con restaurante inexistente
   Given path 'orders'
   And request createOrderPayload({ restauranteId: 99999 })
