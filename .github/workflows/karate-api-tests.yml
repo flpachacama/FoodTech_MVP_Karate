@@ -1,0 +1,29 @@
+name: Karate API Tests
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'backend/karate-tests/**'
+      - 'backend/order-service/**'
+      - 'backend/delivery-service/**'
+
+jobs:
+  karate-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Build and run dryrun syntax check
+        working-directory: backend/karate-tests
+        run: mvn -B -Dtest=AllApiRunner -Dkarate.options=--dryrun test
+
+      # TODO: for full integration, start docker-compose services and run without --dryrun.

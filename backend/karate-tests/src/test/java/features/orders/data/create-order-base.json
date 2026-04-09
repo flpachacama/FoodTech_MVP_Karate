@@ -1,0 +1,18 @@
+{
+  "restauranteId": 1,
+  "restauranteX": -74.0627,
+  "restauranteY": 4.6482,
+  "clima": "SOLEADO",
+  "productos": [
+    {
+      "id": 1,
+      "nombre": "Hamburguesa Clasica",
+      "precio": 18000
+    }
+  ],
+  "clienteId": 1,
+  "clienteNombre": "Cliente Base",
+  "clienteCoordenadasX": -74.0637,
+  "clienteCoordenadasY": 4.6482,
+  "clienteTelefono": "3001234567"
+}

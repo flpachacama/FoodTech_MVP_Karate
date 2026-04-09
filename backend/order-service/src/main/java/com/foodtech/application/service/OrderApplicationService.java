@@ -12,6 +12,7 @@ import com.foodtech.domain.port.output.DeliveryClient;
 import com.foodtech.domain.port.output.DeliveryClient.DeliveryAssignmentRequest;
 import com.foodtech.domain.port.output.DeliveryClient.DeliveryAssignmentResponse;
 import com.foodtech.domain.port.output.PedidoRepository;
+import com.foodtech.domain.service.TiempoDeliveryCalculator;
 import com.foodtech.infrastructure.persistence.RestauranteJpaRepository;
 import com.foodtech.infrastructure.web.dto.CancelOrderResponseDto;
 import com.foodtech.infrastructure.web.dto.DeliverOrderResponseDto;
@@ -23,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +34,7 @@ public class OrderApplicationService implements OrderUseCase {
     private final PedidoRepository pedidoRepository;
     private final DeliveryClient deliveryClient;
     private final RestauranteJpaRepository restauranteRepository;
+    private final TiempoDeliveryCalculator tiempoCalculator;
 
     @Override
     public OrderResponseDto createOrder(OrderRequestDto request) {
@@ -65,6 +68,14 @@ public class OrderApplicationService implements OrderUseCase {
 
         EstadoPedido estadoFinal = resolveEstado(deliveryResponse.estado());
 
+        int tiempoRestauranteCliente = tiempoCalculator.calcularMinutos(
+                request.getRestauranteX(), request.getRestauranteY(),
+                request.getClienteCoordenadasX(), request.getClienteCoordenadasY());
+        int tiempoTotal = (deliveryResponse.tiempoEstimado() != null ? deliveryResponse.tiempoEstimado() : 0)
+                + tiempoRestauranteCliente;
+        log.info("[createOrder] tiempoRepartidorRestaurante={} min, tiempoRestauranteCliente={} min, tiempoTotal={} min",
+                deliveryResponse.tiempoEstimado(), tiempoRestauranteCliente, tiempoTotal);
+
         Pedido pedidoActualizado = Pedido.builder()
                 .id(pedidoGuardado.getId())
                 .restauranteId(pedidoGuardado.getRestauranteId())
@@ -75,7 +86,7 @@ public class OrderApplicationService implements OrderUseCase {
                 .clienteCoordenadasY(pedidoGuardado.getClienteCoordenadasY())
                 .productos(pedidoGuardado.getProductos())
                 .estado(estadoFinal)
-                .tiempoEstimado(deliveryResponse.tiempoEstimado())
+                .tiempoEstimado(tiempoTotal)
                 .build();
 
         pedidoRepository.save(pedidoActualizado);
@@ -101,9 +112,19 @@ public class OrderApplicationService implements OrderUseCase {
         if (request.getClienteCoordenadasX() == null || request.getClienteCoordenadasY() == null) {
             throw new IllegalArgumentException("Las coordenadas del cliente son obligatorias");
         }
+        if (!isValidCoordinate(request.getClienteCoordenadasX()) || !isValidCoordinate(request.getClienteCoordenadasY())) {
+            throw new IllegalArgumentException("Las coordenadas del cliente son inválidas");
+        }
         if (request.getProductos() == null || request.getProductos().isEmpty()) {
             throw new IllegalArgumentException("El pedido debe incluir al menos un producto");
         }
+        if (request.getProductos().stream().anyMatch(Objects::isNull)) {
+            throw new IllegalArgumentException("El pedido contiene productos inválidos");
+        }
+    }
+
+    private boolean isValidCoordinate(Double coordinate) {
+        return coordinate >= -180 && coordinate <= 180;
     }
 
     private Pedido toDomain(OrderRequestDto request) {
@@ -123,6 +144,41 @@ public class OrderApplicationService implements OrderUseCase {
                 .clienteCoordenadasY(request.getClienteCoordenadasY())
                 .productos(productos)
                 .estado(EstadoPedido.PENDIENTE)
+                .build();
+    }
+
+    @Override
+    public OrderResponseDto getOrderByRepartidorId(Long repartidorId) {
+        log.info("[getOrderByRepartidorId] Buscando pedido activo para repartidorId={}", repartidorId);
+        Pedido pedido = pedidoRepository.findPedidoActivoByRepartidorId(repartidorId)
+                .orElseThrow(() -> {
+                    log.warn("[getOrderByRepartidorId] Sin pedido activo para repartidorId={}", repartidorId);
+                    return new PedidoNotFoundException(repartidorId);
+                });
+        return toPedidoResponse(pedido);
+    }
+
+    private OrderResponseDto toPedidoResponse(Pedido pedido) {
+        List<ProductoPedidoDto> productosDto = pedido.getProductos().stream()
+                .map(p -> ProductoPedidoDto.builder()
+                        .id(p.getId())
+                        .nombre(p.getNombre())
+                        .precio(p.getPrecio())
+                        .build())
+                .toList();
+
+        return OrderResponseDto.builder()
+                .id(pedido.getId())
+                .restauranteId(pedido.getRestauranteId())
+                .repartidorId(pedido.getRepartidorId())
+                .clienteId(pedido.getClienteId())
+                .clienteNombre(pedido.getClienteNombre())
+                .clienteCoordenadasX(pedido.getClienteCoordenadasX())
+                .clienteCoordenadasY(pedido.getClienteCoordenadasY())
+                .clienteTelefono(null)   // clienteTelefono no se persiste en BD
+                .productos(productosDto)
+                .estado(pedido.getEstado())
+                .tiempoEstimado(pedido.getTiempoEstimado())
                 .build();
     }
 
