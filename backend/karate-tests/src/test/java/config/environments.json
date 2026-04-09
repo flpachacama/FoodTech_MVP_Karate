@@ -1,0 +1,17 @@
+{
+  "dev": {
+    "orderBaseUrl": "http://localhost:8081",
+    "deliveryBaseUrl": "http://localhost:8080",
+    "maxResponseTimeMs": 2500
+  },
+  "qa": {
+    "orderBaseUrl": "TBD_QA_ORDER_BASE_URL",
+    "deliveryBaseUrl": "TBD_QA_DELIVERY_BASE_URL",
+    "maxResponseTimeMs": 3000
+  },
+  "prod": {
+    "orderBaseUrl": "TBD_PROD_ORDER_BASE_URL",
+    "deliveryBaseUrl": "TBD_PROD_DELIVERY_BASE_URL",
+    "maxResponseTimeMs": 3500
+  }
+}
